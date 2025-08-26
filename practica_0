@@ -1,0 +1,90 @@
+import pandas as pd
+
+def cadena_geringosa(palabra):
+    vocales= ["a","e","i","o","u"]
+    palabra_geringosa=""
+    for letra in palabra:
+        if letra in vocales:
+            palabra_geringosa+= letra + "p" + letra
+        else:
+            palabra_geringosa+=letra
+    return palabra_geringosa
+
+
+
+def pertenece(lista,elem):
+    res=False
+    for cosa in lista:
+        if cosa==elem:
+            res=True
+    return res
+
+
+def mas_larga(lista1,lista2):
+    acum1=0
+    acum2=0
+    lista_larga="lista1"
+    
+    for elem in lista2:
+        acum2+=1
+    for elem in lista1:
+        acum1+=1
+    if acum2>acum1:
+        lista_larga="lista2"
+    
+    return lista_larga
+
+
+def rebotes():
+    tabla={"Rebote":[],
+           "Altura":[]
+           }
+    
+    altura=100
+    rebote=3/5
+    i=0
+    while i<11 :
+        tabla["Rebote"].append(i)
+        altura= altura*rebote
+        tabla["Altura"].append(altura)
+        i+=1
+    
+    df = pd.DataFrame(tabla)
+    return df
+
+
+
+
+def mezclar(cadena1,cadena2):
+    nueva_cadena=""
+    
+    i=0
+    while i < len(cadena1):
+        nueva_cadena+=cadena1[i]
+        nueva_cadena+=cadena2[i]
+        i+=1
+    return nueva_cadena
+
+
+def traductor_geringoso(lista):
+    diccionario={}
+    for palabra in lista:
+        diccionario[palabra]= cadena_geringosa(palabra)
+    return diccionario
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
