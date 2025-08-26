@@ -1,0 +1,85 @@
+import pandas as pd
+import numpy as np
+import math 
+import csv
+
+
+#version con "import csv"
+def leer_parque(nombre_archivo, parque):
+    arboles = [] #lista con todos los arboles en general paz (lo que me piden devolver)
+    with open(nombre_archivo, encoding="utf-8") as f: #estoy nombrando al archivo abierto como "f"
+        filas = csv.DictReader(f) # DictReader mete primero en una lista todas las columnas y luego por cada fila crea un diccionario {clave,valor} donde la clave es el nombre de la columna asignada y el valor es lo que la celda en esa fila vale
+        for fila in filas: #por cada diccionario en mi lista
+            if fila["espacio_ve"] == parque:   # me fijo si el valor de la clave "espacio_ve" (que es el nombre de la columna por la que me interesa filtrar) es igual al parque que yo quiero agarrar.
+                arboles.append(fila) #si efectivamente el valor es == parque_elegido, entonces agarro esa fila y la meto en una lista.
+    return arboles #arboles contiene todos los diccionarios que tienen en {espacio_ve=parque_elegido}
+
+# Probamos con el parque GENERAL PAZ
+arboles_gp = leer_parque("arbolado-en-espacios-verdes.csv", "GENERAL PAZ")
+
+
+#me devuelve solo la columna que contiene el nombre de la especie
+def especies(lista_arboles):
+    lista_especies=[]
+    arboles=lista_arboles
+    for fila in arboles:
+        lista_especies.append(fila["nombre_com"])
+    return lista_especies
+
+especies_gp= especies(arboles_gp)
+
+
+
+# toma una lista de arboles y devuelve un diccionario en el qye las especies son claves y los valore son la cantidad de ejemplares en la lista dada
+def contar_ejemplares(lista_arboles):
+    cantidad_especies={}
+    especies_a_contar=especies(lista_arboles)
+    for especie in especies_a_contar:
+        if especie in cantidad_especies:
+            cantidad_especies[especie]+=1
+        else:
+            cantidad_especies[especie]=1
+    return cantidad_especies
+
+cantidad_especies_gp=contar_ejemplares(arboles_gp)
+
+#toma una lista de arboles, y una especie y devuelve una lista con las alturas de los ejemplares de esa especie
+def obtener_alturas(lista_arboles, especie):
+    arboles_de_especie=[]
+    alturas_arboles=[]
+    for fila in lista_arboles:
+        if fila["nombre_com"] == especie:
+            arboles_de_especie.append(fila)
+    for arbol in arboles_de_especie:
+        alturas_arboles.append(float(arbol["altura_tot"]))
+    return alturas_arboles
+
+alturas_gp= obtener_alturas(arboles_gp,"Jacarandá") # es importante escribir el nombre de la variable tal cual esta en el csv
+
+print(alturas_gp)
+
+
+def altura_max_y_prom(nombre_archivo,
+                      especie="Jacarandá",
+                      parques=("GENERAL PAZ", "LOS ANDES", "CENTENARIO")):
+    # armamos la tabla como dict -> luego DataFrame
+    data = {"Medida": ["max", "prom"]}
+    for parque in parques:
+        alturas = obtener_alturas(leer_parque(nombre_archivo, parque), especie)
+        if alturas:
+            maximo = max(alturas)
+            promedio = sum(alturas) / len(alturas)
+        else:
+            maximo, promedio = float("nan"), float("nan")
+        data[parque.title()] = [maximo, round(promedio, 2)]  # capitaliza nombres
+
+    # pasamos a DataFrame y dejamos prolijo
+    df = pd.DataFrame(data).set_index("Medida").round(2)
+    return df
+
+# Ejemplo de uso:
+df_jaca = altura_max_y_prom("arbolado-en-espacios-verdes.csv", especie="Jacarandá")
+print(df_jaca)
+
+
+
