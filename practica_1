@@ -1,7 +1,14 @@
+#Imports
+
 import pandas as pd
 import numpy as np
 import math 
 import csv
+
+
+#%%
+
+#Trabajo de funciones con el archivo de arboles en espacios verdes en GCBA
 
 
 #version con "import csv"
@@ -56,7 +63,6 @@ def obtener_alturas(lista_arboles, especie):
 
 alturas_gp= obtener_alturas(arboles_gp,"Jacarandá") # es importante escribir el nombre de la variable tal cual esta en el csv
 
-print(alturas_gp)
 
 
 def altura_max_y_prom(nombre_archivo,
@@ -79,7 +85,173 @@ def altura_max_y_prom(nombre_archivo,
 
 # Ejemplo de uso:
 df_jaca = altura_max_y_prom("arbolado-en-espacios-verdes.csv", especie="Jacarandá")
-print(df_jaca)
 
+
+
+
+def obtener_inclinaciones(lista_arboles, especie):
+    arboles_de_especie=[]
+    inclinaciones_arboles=[]
+    for fila in lista_arboles:
+        if fila["nombre_com"] == especie:
+            arboles_de_especie.append(fila)
+    for arbol in arboles_de_especie:
+        inclinaciones_arboles.append(float(arbol["inclinacio"]))
+    return inclinaciones_arboles
+
+
+
+def especimen_mas_inclinado(lista_arboles):
+    # 1. obtener todas las especies en el parque
+    especies_lista = especies(lista_arboles)
+
+    max_inclinacion = -float("inf")
+    especie_max = None
+
+    # 2. recorrer cada especie
+    for especie in especies_lista:
+        inclinaciones = obtener_inclinaciones(lista_arboles, especie)
+
+        if inclinaciones:  # chequeamos que la lista no esté vacía
+            max_especie = max(inclinaciones)
+
+            # 3. actualizar si encontramos un nuevo máximo global
+            if max_especie > max_inclinacion:
+                max_inclinacion = max_especie
+                especie_max = especie
+
+    return max_inclinacion, especie_max
+
+parque_centenario = leer_parque("arbolado-en-espacios-verdes.csv", "CENTENARIO")
+incli_parque_centenario = especimen_mas_inclinado(parque_centenario)
+
+
+
+def especie_promedio_mas_inclinada(lista_arboles):
+    especies_lista = especies(lista_arboles)
+    promedio_max=-float("inf")
+    especie_max= None
+    for especie in especies_lista:
+        inclinaciones = obtener_inclinaciones(lista_arboles, especie)
+        if inclinaciones:  # aseguramos que no esté vacía
+            promedio_actual = sum(inclinaciones) / len(inclinaciones)
+            if promedio_actual > promedio_max:
+                promedio_max = promedio_actual
+                especie_max = especie
+                
+    return promedio_max, especie_max
+    
+    
+parque_losandes = leer_parque("arbolado-en-espacios-verdes.csv", "EJERCITO DE LOS ANDES")
+max_prom_los_andes = especie_promedio_mas_inclinada(parque_losandes)
+
+
+#%%
+
+#Trabajo con el archivo de arboles sobre veredas y comparaciones con el de espacios verdes
+
+#DataSet veredas con las columnas indicadas.
+
+# Cargamos el dataset de árboles en veredas
+veredas = pd.read_csv("arbolado-publico-lineal-2017-2018.csv", low_memory=False)
+
+# Nos quedamos solo con las columnas que nos interesan
+columnas = ['nombre_cientifico', 
+            'diametro_altura_pecho', 'altura_arbol']
+
+data_arboles_veredas = veredas[columnas]
+
+#%%
+#DataSet parques con las columnas indicadas.
+
+# Cargamos el dataset de árboles en veredas
+parques = pd.read_csv("arbolado-en-espacios-verdes.csv",low_memory=False)
+
+# Nos quedamos solo con las columnas que nos interesan
+columnas = ['nombre_cie', 
+            'diametro', 'altura_tot']
+
+data_arboles_parques = parques[columnas]
+
+data_arboles_parques = data_arboles_parques.rename(columns={
+    "nombre_cie": "nombre_cientifico",
+    "altura_tot": "altura_arbol",
+    "diametro": "diametro_altura_pecho"
+})
+
+
+#%% 
+
+#Comparacion de diametro a la altura pecho de las "tipas" en ambos tipos de entornos
+#Quiero armarme 2 datasets con mismas columnas e info
+#copia_dataset_parques= 
+# Tipas en parques
+
+df_tipas_parques = data_arboles_parques[
+    data_arboles_parques["nombre_cientifico"] == "Tipuana Tipu"
+]
+df_tipas_parques["ambiente"] = "parque"
+
+
+# Tipas en veredas
+df_tipas_veredas = data_arboles_veredas[
+    data_arboles_veredas["nombre_cientifico"] == "Tipuana tipu"
+]
+df_tipas_veredas["ambiente"] = "vereda"
+
+df_combinado = pd.concat([df_tipas_veredas, df_tipas_parques], ignore_index=True)
+
+#%%
+
+#Analisis de altura maximo, promedio y diametro de las tipas, para sacar conclusiones sobre el ambiente de crecimiento y su efecto
+# dataframe[columna].sum() a un df devuelve la suma de la columna referenciada.
+# dataframe[columna].mean() a un df devuelve el promedio de la columna referenciada.
+# dataframe[columna].max()/.min() a un df devuelve el maximo o minimo de la columna referenciada.
+
+suma_altura_tipas_parques= df_tipas_parques["altura_arbol"].sum()
+promedio_altura_tipas_parques=suma_altura_tipas_parques/len(df_tipas_parques)
+
+
+
+
+suma_altura_tipas_veredas= df_tipas_veredas["altura_arbol"].sum()
+promedio_altura_tipas_veredas=suma_altura_tipas_veredas/len(df_tipas_veredas)
+
+
+#%%
+
+#imports para graficos prolijos y sencillos
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Juntamos los datos
+df_tipas = pd.concat([df_tipas_veredas, df_tipas_parques])
+
+plt.figure(figsize=(10,6))
+
+# Hacemos stripplot para ver todos los puntos (árboles individuales)
+sns.stripplot(
+    data=df_tipas, 
+    x="origen", 
+    y="altura_arbol", 
+    jitter=True,   # separa un poco los puntos para que no se superpongan
+    alpha=0.6,     # transparencia
+    size=5,
+    palette="Set1"
+)
+
+# Calculamos los promedios y dibujamos líneas horizontales
+promedios = df_tipas.groupby("origen")["altura_arbol"].mean()
+for i, (origen, promedio) in enumerate(promedios.items()):
+    plt.hlines(y=promedio, xmin=i-0.4, xmax=i+0.4, 
+               colors="black", linestyles="dashed", linewidth=2)
+    plt.text(i, promedio+0.3, f"Media: {promedio:.1f} m", 
+             ha="center", va="bottom", fontsize=10, color="black")
+
+# Estética
+plt.title("Alturas de Tipas en veredas vs parques", fontsize=14)
+plt.ylabel("Altura (m)")
+plt.xlabel("")
+plt.show()
 
 
