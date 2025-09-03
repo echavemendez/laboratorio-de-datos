@@ -1,0 +1,22 @@
+import pandas as pd
+import numpy as np
+
+
+empleado_01=[[20222333,45,2,20000],[33456234,40,0,25000],[45432345,41,1,10000]]
+
+def superanSalarioActividad01(matriz,umbral):
+    resultado=[]
+    for empleado in matriz:
+        if empleado[3]>umbral:
+            resultado.append(empleado)
+    return resultado
+
+matriz_01=superanSalarioActividad01(empleado_01, 15000)
+
+empleado_02=[[20222333,45,2,20000],[33456234,40,0,25000],[45432345,41,1,10000],[43967394,37,0,12000],[42236276,36,0,18000]]
+
+
+
+matriz_02=superanSalarioActividad01(empleado_02, 15000)
+
+
