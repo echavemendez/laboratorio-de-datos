@@ -1,0 +1,44 @@
+"""
+Comienzo a trabajar con herramientas de WebScrapping como la libreria BeautifulSoup, o Requests.
+Integrando con pandas y otras librerias que ya usamos previamente se logra filtrar y scrappear contenido.
+
+"""
+#%%
+import requests
+import pandas as pd
+url = "https://datos.gob.ar/dataset?groups=envi"
+r = requests.get(url)
+
+#%%
+# status code 
+print(r.status_code)
+
+#%%
+from bs4 import BeautifulSoup
+datasets_ma = BeautifulSoup(r.text, 'html.parser')
+
+#%%
+# como se ve
+
+datasets_ma
+
+# devuelve los de tipo h1
+
+datasets_ma.find_all('h1')
+
+# busco todas las instancias en el archivo html en donde se cumple que dentro de los atributos del objeto su 'class'es "dataset-title".
+
+caminos = datasets_ma.find_all('h3',attrs={'class':"dataset-title"})
+
+# limpia el texto extraido y lo mete en una lista
+
+titulos = [c.get_text(strip=True) for c in caminos]
+
+# arma un df con pandas con la tabla que arme antes
+medioambiente = pd.DataFrame(titulos, columns=['DataSets'])
+
+#%%
+# Exploracion de las API's
+#yahoo finance, banco mundial, exchange gecko, datos.gob.ar(datos del gobierno nacional), https://bluelytics.com.ar/#!/ tmb
+
+#DevTools ->network (solicitudes que hizo y datos que recibio)
